@@ -1,0 +1,110 @@
+#Insertar categorias
+db.categorias.insertMany([{"name": "hogar", "descripcion": "productos para el hogar", "createdAt": new Date(), "updatedAt": ""},{ "name": "Moda", "descripcion": "Todo en ropa, calzado, accesorios y joyeria", "createdAt": new Date(), "updatedAt": ""},])
+
+#Buscar categorias
+db.categorias.find()
+
+#Insertar productos
+db.productos.insertOne({ "name": "televisor", "description": "televisor HD 50 pulgadas", "price": 1650000, "stock": 50, "categories": ["electronica"],  "comments": [], "createdAt": new Date(), "updatedAt": "" })
+
+#insertar comentarios
+db.opiniones.insertOne({ "rating": 5,  "comment": "Excelenmte producto", "date": new Date()})
+
+#Productos que tengan precio mayor a 500000
+db.productos.find({ "price": { $gt: 500000 } })
+
+#Productos que pertenecen a las categorias hogar o electronica
+db.productos.find({ "categories": { $in: ["hogar", "electronica"] } })
+
+#Productos que no esten en un rango
+db.productos.find({ "price": { $nin: [500, 1000] } })
+
+#Productos con precio mayor a 500 y stock mayor a 100
+db.productos.find({ 
+  $and: [
+    { "price": { $gt: 500 } },
+    { "stock": { $gt: 100 } }
+  ] 
+})
+
+#Productos que tengan al menos dos categorias
+db.productos.find({ "categories": { $size: 2 } })
+
+#Sacar el promedio de los precios
+db.productos.aggregate([
+  {
+    $group: {
+      _id: null, 
+      promedioPrecio: { $avg: "$price" } 
+    }
+  }
+])
+
+#Sacar la suma de los precios
+db.productos.aggregate([
+  {
+    $group: {
+      _id: null,
+      totalPrecio: { $sum: "$price" } 
+    }
+  }
+])
+
+#Calcular la cantidad de poductos por categoria
+db.productos.aggregate([
+  {
+    $unwind: "$categories" 
+  },
+  {
+    $group: {
+      _id: "$categories", 
+      totalProductos: { $sum: 1 } 
+    }
+  }
+])
+
+#Mostrar la cantidad de productos que tengan un precio en el rango de 30000 y 50000 
+db.productos.aggregate([
+  {
+    $match: {
+      price: { $gte: 30000, $lte: 50000 } 
+    }
+  },
+  {
+    $count: "totalProductosEnRango" 
+  }
+])
+
+#Calcular el precio maximo y minimo
+db.productos.aggregate([
+  {
+    $group: {
+      _id: null, 
+      maxPrecio: { $max: "$price" }, 
+      minPrecio: { $min: "$price" } 
+    }
+  }
+])
+
+#calcular el promedio de precios por categoria
+db.productos.aggregate([
+  {
+    $unwind: "$categories" 
+  },
+  {
+    $group: {
+      _id: "$categories", 
+      promedioPrecio: { $avg: "$price" } 
+    }
+  }
+])
+
+#Mostrar el top 3 de los productos mas costosos
+db.productos.aggregate([
+  {
+    $sort: { price: -1 } 
+  },
+  {
+    $limit: 3
+  }
+])
